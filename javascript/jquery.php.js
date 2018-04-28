@@ -14,7 +14,7 @@
 (function($) {
 
 $.extend({
-    php: function (url, params) {
+    php: function (url, params, oncomplete) {
         // do an ajax post request
         $.ajax({
            // AJAX-specified URL
@@ -23,11 +23,12 @@ $.extend({
            type: "POST",
            data: params,
            dataType : "json",
+
            /* Handlers */
 
            // Handle the beforeSend event
-           beforeSend: function(){
-               return php.beforeSend();
+           beforeSend: function(XMLHttpRequest){
+               return php.beforeSend(XMLHttpRequest);
            },
            // Handle the success event
            success: function(data, textStatus){
@@ -39,6 +40,7 @@ $.extend({
            },
            // Handle the complete event
            complete: function (XMLHttpRequest, textStatus) {
+        	   if(oncomplete) oncomplete(data, XMLHttpRequest.responseText);
                return php.complete(XMLHttpRequest, textStatus);
            }
         });
@@ -59,13 +61,18 @@ php = {
      * @param object response
      * @param string textStatus
      */
-     success:function (response, textStatus) {
+    success:function (responseList, textStatus) {
+   	 	for(i=0;i<responseList.length;i++) {
+   	 		php.processResponse(responseList[i]);
+   		}
+   	},
+    processResponse:function (response) {
         // call jQuery methods
-		for (var i=0;i<response['q'].length; i++) {
+		if (response['q']!=undefined) {
 		   
-			var selector  = $(response['q'][i]['s']);
-			var methods   = response['q'][i]['m'];
-			var arguments = response['q'][i]['a'];
+			var selector  = $(response['q']['s']);
+			var methods   = response['q']['m'];
+			var arguments = response['q']['a'];
 			
 			for (var j=0;j<methods.length; j++) { 
 				try {
@@ -149,7 +156,7 @@ php = {
 					}
 				} catch (error) {
 					// if is error
-					alert('onAction: $("'+ response['q'][i]['s'] +'").'+ method +'("'+ argument +'")\n'
+					console.error('onAction: $("..").'+ method +'("...")\n'
 									+' in file: ' + error.fileName + '\n'
 									+' on line: ' + error.lineNumber +'\n'
 									+' error:   ' + error.message);
@@ -159,19 +166,21 @@ php = {
 
         // predefined actions named as 
         // Methods of ObjResponse in PHP side 
-        $.each(response['a'], function (func, params) {
-            for (var i=0;i<params.length; i++) {
-                try {
-                    php[func](params[i]);
-                } catch (error) {
-                    // if is error
-                    alert('onAction: ' + func + '('+ params[i] +')\n'
-                                       +' in file: ' + error.fileName + '\n'
-                                       +' on line: ' + error.lineNumber +'\n'
-                                       +' error:   ' + error.message);
-                }
-            }
-        });
+		if (response['a']!=undefined) {
+	        $.each(response['a'], function (func, params) {
+	            for (var i=0;i<params.length; i++) {
+	                try {
+	                    php[func](params[i]);
+	                } catch (error) {
+	                    // if is error
+	                    console.error('onAction: ' + func + '('+ params[i] +')\n'
+	                                       +' in file: ' + error.fileName + '\n'
+	                                       +' on line: ' + error.lineNumber +'\n'
+	                                       +' error:   ' + error.message);
+	                }
+	            }
+	        });
+		}
              
     },
 

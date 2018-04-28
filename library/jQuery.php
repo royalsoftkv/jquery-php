@@ -1,8 +1,93 @@
 <?php
-/** jQuery_Action */
-require_once 'jQuery/Action.php';
-/** jQuery_Element */
-require_once 'jQuery/Element.php';
+
+/**
+ * Class jQuery_Action
+ *
+ * Abstract class for any parameter of any action
+ *
+ * @author Anton Shevchuk
+ * @access   public
+ * @package  jQuery
+ */
+class jQuery_Action
+{
+	/**
+	 * add param to list
+	 *
+	 * @param  string $param
+	 * @param  string $value
+	 * @return jQuery_Action
+	 */
+	public function add($param, $value)
+	{
+		$this->$param = $value;
+		return $this;
+	}
+}
+
+/**
+ * jQuery_Element - class for work with jQuery framework
+ *
+ * @author Anton Shevchuk
+ * @access   public
+ * @package  jQuery
+ */
+class jQuery_Element
+{
+	/**
+	 * selector path
+	 * @var string
+	 */
+	public $s;
+
+	/**
+	 * methods
+	 * @var array
+	 */
+	public $m = array();
+
+	/**
+	 * args
+	 * @var array
+	*/
+	public $a = array();
+
+	/**
+	 * __construct
+	 * contructor of jQuery
+	 *
+	 * @return jQuery_Element
+	*/
+	public function __construct($selector)
+	{
+		jQuery::addElement($this);
+		$this->s = $selector;
+	}
+
+	/**
+	 * __call
+	 *
+	 * @return jQuery_Element
+	 */
+	public function __call($method, $args)
+	{
+		array_push($this->m, $method);
+		array_push($this->a, $args);
+
+		return $this;
+	}
+
+	/**
+	 * end
+	 * need to create new jQuery
+	 *
+	 * @return jQuery_Element
+	 */
+	public function end()
+	{
+		return new jQuery_Element($this->s);
+	}
+}
 
 /**
  * jQuery
@@ -24,12 +109,7 @@ class jQuery
      * response stack
      * @var array
      */
-    public $response = array(
-                              // actions (addMessage, addError, eval etc.)
-                              'a' => array(),
-                              // jqueries
-                              'q' => array()
-                            );
+    public $response = array();
     /**
      * __construct
      *
@@ -197,7 +277,7 @@ class jQuery
     {
         jQuery::init();
         
-        array_push(jQuery::$jQuery->response['q'], $jQuery_Element);
+        array_push(jQuery::$jQuery->response, array('q'=>$jQuery_Element));
     }
     
         
@@ -213,7 +293,7 @@ class jQuery
     {
         jQuery::init();
         
-        jQuery::$jQuery->response['a'][$name][] = $jQuery_Action;
+        jQuery::$jQuery->response[]['a'][$name][] = $jQuery_Action;
     }
 }
 

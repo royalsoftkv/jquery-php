@@ -1,0 +1,10 @@
+{
+    "name": "royalsoft/jquery-php",
+    "authors": [
+        {
+            "name": "RoyalSoft",
+            "email": "royalsoftkv@gmail.com"
+        }
+    ],
+    "require": {}
+}
